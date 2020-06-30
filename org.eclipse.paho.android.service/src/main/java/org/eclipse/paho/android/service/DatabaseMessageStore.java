@@ -17,7 +17,7 @@ package org.eclipse.paho.android.service;
 
 import java.util.Iterator;
 
-import org.eclipse.paho.client.mqttv3.MqttMessage;
+import org.eclipse.paho.mqttv5.common.*;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -447,7 +447,7 @@ class DatabaseMessageStore implements MessageStore {
 		}
 
 		@Override
-		protected void setDuplicate(boolean dup) {
+		public void setDuplicate(boolean dup) {
 			super.setDuplicate(dup);
 		}
 	}

@@ -19,19 +19,11 @@ import java.util.Iterator;
 import java.util.Map;
 
 import org.eclipse.paho.android.service.MessageStore.StoredMessage;
-import org.eclipse.paho.client.mqttv3.DisconnectedBufferOptions;
-import org.eclipse.paho.client.mqttv3.IMqttActionListener;
-import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
-import org.eclipse.paho.client.mqttv3.IMqttMessageListener;
-import org.eclipse.paho.client.mqttv3.IMqttToken;
-import org.eclipse.paho.client.mqttv3.MqttAsyncClient;
-import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
-import org.eclipse.paho.client.mqttv3.MqttClientPersistence;
-import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
-import org.eclipse.paho.client.mqttv3.MqttException;
-import org.eclipse.paho.client.mqttv3.MqttMessage;
-import org.eclipse.paho.client.mqttv3.MqttPersistenceException;
-import org.eclipse.paho.client.mqttv3.persist.MqttDefaultFilePersistence;
+import org.eclipse.paho.mqttv5.client.*;
+import org.eclipse.paho.mqttv5.client.internal.*;
+import org.eclipse.paho.mqttv5.client.persist.*;
+import org.eclipse.paho.mqttv5.common.*;
+import org.eclipse.paho.mqttv5.common.packet.*;
 
 import android.app.Service;
 import android.content.Context;
@@ -64,7 +56,7 @@ import android.util.Log;
  * Activity via the MqttService.callbackToActivity() method.
  * </p>
  */
-class MqttConnection implements MqttCallbackExtended {
+class MqttConnection implements MqttCallback {
 
 	// Strings for Intents etc..
 	private static final String TAG = "MqttConnection";
@@ -91,13 +83,27 @@ class MqttConnection implements MqttCallbackExtended {
 
 	private String clientId;
 	private MqttClientPersistence persistence = null;
-	private MqttConnectOptions connectOptions;
+	private MqttConnectionOptions connectOptions;
 
-	public MqttConnectOptions getConnectOptions() {
+	@Override
+	public void authPacketArrived(int i, MqttProperties mqttProperties) {
+
+	}
+
+	@Override
+	public void mqttErrorOccurred(MqttException e) {
+	}
+
+	@Override
+	public void disconnected(MqttDisconnectResponse mqttDisconnectResponse) {
+	}
+
+
+	public MqttConnectionOptions getConnectOptions() {
 		return connectOptions;
 	}
 
-	public void setConnectOptions(MqttConnectOptions connectOptions) {
+	public void setConnectOptions(MqttConnectionOptions connectOptions) {
 		this.connectOptions = connectOptions;
 	}
 
@@ -187,17 +193,17 @@ class MqttConnection implements MqttCallbackExtended {
 	 * @param activityToken
 	 *            arbitrary identifier to be passed back to the Activity
 	 */
-	public void connect(MqttConnectOptions options, String invocationContext,
+	public void connect(MqttConnectionOptions options, String invocationContext,
 			String activityToken) {
 		
 		connectOptions = options;
 		reconnectActivityToken = activityToken;
 
 		if (options != null) {
-			cleanSession = options.isCleanSession();
+			cleanSession = options.isCleanStart();
 		}
 
-		if (connectOptions.isCleanSession()) { // if it's a clean session,
+		if (connectOptions.isCleanStart()) { // if it's a clean session,
 			// discard old data
 			service.messageStore.clearArrivedMessages(clientHandle);
 		}
@@ -240,7 +246,7 @@ class MqttConnection implements MqttCallbackExtended {
 						myDir.getAbsolutePath());
 			}
 			
-			IMqttActionListener listener = new MqttConnectionListener(
+			MqttActionListener listener = new MqttConnectionListener(
 					resultBundle) {
 
 				@Override
@@ -287,7 +293,7 @@ class MqttConnection implements MqttCallbackExtended {
 			else {
 				alarmPingSender = new AlarmPingSender(service);
 				myClient = new MqttAsyncClient(serverURI, clientId,
-						persistence, alarmPingSender);
+						persistence, alarmPingSender, null);
 				myClient.setCallback(this);
 
 				service.traceDebug(TAG,"Do Real connect!");
@@ -418,10 +424,12 @@ class MqttConnection implements MqttCallbackExtended {
 		resultBundle.putString(MqttServiceConstants.CALLBACK_ACTION,
 				MqttServiceConstants.DISCONNECT_ACTION);
 		if ((myClient != null) && (myClient.isConnected())) {
-			IMqttActionListener listener = new MqttConnectionListener(
+			MqttActionListener listener = new MqttConnectionListener(
 					resultBundle);
 			try {
-				myClient.disconnect(quiesceTimeout, invocationContext, listener);
+				//TODO: sending client error for manual disconnect due to no appropriate error code.
+				myClient.disconnect(quiesceTimeout, invocationContext, listener,
+						MqttException.REASON_CODE_CLIENT_EXCEPTION, null);
 			} catch (Exception e) {
 				handleException(resultBundle, e);
 			}
@@ -433,7 +441,7 @@ class MqttConnection implements MqttCallbackExtended {
 			service.callbackToActivity(clientHandle, Status.ERROR, resultBundle);
 		}
 
-		if (connectOptions != null && connectOptions.isCleanSession()) {
+		if (connectOptions != null && connectOptions.isCleanStart()) {
 			// assume we'll clear the stored messages at this point
 			service.messageStore.clearArrivedMessages(clientHandle);
 		}
@@ -461,7 +469,7 @@ class MqttConnection implements MqttCallbackExtended {
 		resultBundle.putString(MqttServiceConstants.CALLBACK_ACTION,
 				MqttServiceConstants.DISCONNECT_ACTION);
 		if ((myClient != null) && (myClient.isConnected())) {
-			IMqttActionListener listener = new MqttConnectionListener(
+			MqttActionListener listener = new MqttConnectionListener(
 					resultBundle);
 			try {
 				myClient.disconnect(invocationContext, listener);
@@ -476,7 +484,7 @@ class MqttConnection implements MqttCallbackExtended {
 			service.callbackToActivity(clientHandle, Status.ERROR, resultBundle);
 		}
 
-		if (connectOptions != null && connectOptions.isCleanSession()) {
+		if (connectOptions != null && connectOptions.isCleanStart()) {
 			// assume we'll clear the stored messages at this point
 			service.messageStore.clearArrivedMessages(clientHandle);
 		}
@@ -522,7 +530,7 @@ class MqttConnection implements MqttCallbackExtended {
 		IMqttDeliveryToken sendToken = null;
 
 		if ((myClient != null) && (myClient.isConnected())) {
-			IMqttActionListener listener = new MqttConnectionListener(
+			MqttActionListener listener = new MqttConnectionListener(
 					resultBundle);
 			try {
 				MqttMessage message = new MqttMessage(payload);
@@ -573,7 +581,7 @@ class MqttConnection implements MqttCallbackExtended {
 		IMqttDeliveryToken sendToken = null;
 
 		if ((myClient != null) && (myClient.isConnected())) {
-			IMqttActionListener listener = new MqttConnectionListener(
+			MqttActionListener listener = new MqttConnectionListener(
 					resultBundle);
 			try {
 				sendToken = myClient.publish(topic, message, invocationContext,
@@ -585,7 +593,7 @@ class MqttConnection implements MqttCallbackExtended {
 			}
 		} else if ((myClient !=null) && (this.bufferOpts != null) && (this.bufferOpts.isBufferEnabled())){
 			// Client is not connected, but buffer is enabled, so sending message
-			IMqttActionListener listener = new MqttConnectionListener(
+			MqttActionListener listener = new MqttConnectionListener(
 					resultBundle);
 			try {
 				sendToken = myClient.publish(topic, message, invocationContext,
@@ -631,7 +639,7 @@ class MqttConnection implements MqttCallbackExtended {
 				invocationContext);
 
 		if ((myClient != null) && (myClient.isConnected())) {
-			IMqttActionListener listener = new MqttConnectionListener(
+			MqttActionListener listener = new MqttConnectionListener(
 					resultBundle);
 			try {
 				myClient.subscribe(topic, qos, invocationContext, listener);
@@ -672,7 +680,7 @@ class MqttConnection implements MqttCallbackExtended {
 				invocationContext);
 
 		if ((myClient != null) && (myClient.isConnected())) {
-			IMqttActionListener listener = new MqttConnectionListener(
+			MqttActionListener listener = new MqttConnectionListener(
 					resultBundle);
 			try {
 				myClient.subscribe(topic, qos, invocationContext, listener);
@@ -695,10 +703,10 @@ class MqttConnection implements MqttCallbackExtended {
 		resultBundle.putString(MqttServiceConstants.CALLBACK_ACTIVITY_TOKEN, activityToken);
 		resultBundle.putString(MqttServiceConstants.CALLBACK_INVOCATION_CONTEXT, invocationContext);
 		if((myClient != null) && (myClient.isConnected())){
-			IMqttActionListener listener = new MqttConnectionListener(resultBundle);
+			MqttActionListener listener = new MqttConnectionListener(resultBundle);
 			try {
 
-				myClient.subscribe(topicFilters, qos,messageListeners);
+				myClient.subscribe(topicFilters, qos,messageListeners, null);
 			} catch (Exception e){
 				handleException(resultBundle, e);
 			}
@@ -732,7 +740,7 @@ class MqttConnection implements MqttCallbackExtended {
 				MqttServiceConstants.CALLBACK_INVOCATION_CONTEXT,
 				invocationContext);
 		if ((myClient != null) && (myClient.isConnected())) {
-			IMqttActionListener listener = new MqttConnectionListener(
+			MqttActionListener listener = new MqttConnectionListener(
 					resultBundle);
 			try {
 				myClient.unsubscribe(topic, invocationContext, listener);
@@ -771,10 +779,10 @@ class MqttConnection implements MqttCallbackExtended {
 				MqttServiceConstants.CALLBACK_INVOCATION_CONTEXT,
 				invocationContext);
 		if ((myClient != null) && (myClient.isConnected())) {
-			IMqttActionListener listener = new MqttConnectionListener(
+			MqttActionListener listener = new MqttConnectionListener(
 					resultBundle);
 			try {
-				myClient.unsubscribe(topic, invocationContext, listener);
+				myClient.unsubscribe(topic, invocationContext, listener, null);
 			} catch (Exception e) {
 				handleException(resultBundle, e);
 			}
@@ -803,13 +811,13 @@ class MqttConnection implements MqttCallbackExtended {
 	 * @param why
 	 *            the exeception causing the break in communications
 	 */
-	@Override
+	//@Override
 	public void connectionLost(Throwable why) {
 		service.traceDebug(TAG, "connectionLost(" + why.getMessage() + ")");
 		disconnected = true;
 		try {
 			if(!this.connectOptions.isAutomaticReconnect()) {
-				myClient.disconnect(null, new IMqttActionListener() {
+				myClient.disconnect(null, new MqttActionListener() {
 
 					@Override
 					public void onSuccess(IMqttToken asyncActionToken) {
@@ -973,7 +981,7 @@ class MqttConnection implements MqttCallbackExtended {
 	 * return results
 	 * 
 	 */
-	private class MqttConnectionListener implements IMqttActionListener {
+	private class MqttConnectionListener implements MqttActionListener {
 
 		private final Bundle resultBundle;
 
@@ -1066,7 +1074,7 @@ class MqttConnection implements MqttCallbackExtended {
 			
 			try {
 				
-				IMqttActionListener listener = new MqttConnectionListener(resultBundle) {
+				MqttActionListener listener = new MqttConnectionListener(resultBundle) {
 					@Override
 					public void onSuccess(IMqttToken asyncActionToken) {
 						// since the device's cpu can go to sleep, acquire a
@@ -1107,7 +1115,9 @@ class MqttConnection implements MqttCallbackExtended {
 				*/
 				service.traceError(TAG, "Cannot reconnect to remote server." + e.getMessage());
 				setConnectingState(false);
-				MqttException newEx = new MqttException(MqttException.REASON_CODE_UNEXPECTED_ERROR, e.getCause());
+
+				//TODO: throwing client exception instead of unexpected error due to no similar error in mqtt-v5
+				MqttException newEx = new MqttException(MqttException.REASON_CODE_CLIENT_EXCEPTION, e.getCause());
 				handleException(resultBundle, newEx);
 			}
 		}

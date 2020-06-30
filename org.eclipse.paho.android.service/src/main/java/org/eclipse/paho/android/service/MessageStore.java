@@ -14,7 +14,12 @@ package org.eclipse.paho.android.service;
 
 import java.util.Iterator;
 
-import org.eclipse.paho.client.mqttv3.MqttMessage;
+//import org.eclipse.paho.client.mqttv3.MqttMessage;
+import org.eclipse.paho.mqttv5.client.*;
+import org.eclipse.paho.mqttv5.client.internal.*;
+import org.eclipse.paho.mqttv5.client.persist.*;
+import org.eclipse.paho.mqttv5.common.*;
+import org.eclipse.paho.mqttv5.common.packet.*;
 
 /**
  * <p>

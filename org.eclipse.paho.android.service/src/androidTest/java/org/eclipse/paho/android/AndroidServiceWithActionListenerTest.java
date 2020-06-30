@@ -20,7 +20,7 @@ import org.eclipse.paho.client.mqttv3.IMqttActionListener;
 import org.eclipse.paho.client.mqttv3.IMqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.IMqttToken;
-import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
+import org.eclipse.paho.client.mqttv3.MqttConnectionOptions;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 import android.content.Intent;
@@ -113,7 +113,7 @@ public class AndroidServiceWithActionListenerTest extends ServiceTestCase {
                 null);
         mqttClient.setCallback(mqttV3Receiver);
 
-        MqttConnectOptions mqttConnectOptions = new MqttConnectOptions();
+        MqttConnectionOptions mqttConnectOptions = new MqttConnectionOptions();
         mqttConnectOptions.setCleanSession(false);
 
         connectToken = mqttClient.connect(mqttConnectOptions, null, new ActionListener(notifier));
@@ -448,7 +448,7 @@ public class AndroidServiceWithActionListenerTest extends ServiceTestCase {
 
                 String[] urls = new String[]{"tcp://junk", serverURI};
 
-                MqttConnectOptions options = new MqttConnectOptions();
+                MqttConnectionOptions options = new MqttConnectionOptions();
                 options.setServerURIs(urls);
 
                 Log.i(methodName,"HA connect");
@@ -625,7 +625,7 @@ public class AndroidServiceWithActionListenerTest extends ServiceTestCase {
         try {
             mqttClient = new MqttAndroidClient(mContext, mqttSSLServerURI, "testSSLConnect");
 
-            MqttConnectOptions options = new MqttConnectOptions();
+            MqttConnectionOptions options = new MqttConnectionOptions();
             options.setSocketFactory(mqttClient.getSSLSocketFactory(this.getContext().getAssets().open("test.bks"),keyStorePwd));
 
 
@@ -675,7 +675,7 @@ public class AndroidServiceWithActionListenerTest extends ServiceTestCase {
         try {
             mqttClient = new MqttAndroidClient(mContext, mqttSSLServerURI, "testSSLPubSub");
 
-            MqttConnectOptions options = new MqttConnectOptions();
+            MqttConnectionOptions options = new MqttConnectionOptions();
             options.setSocketFactory(mqttClient.getSSLSocketFactory(this.getContext().getAssets().open("test.bks"),keyStorePwd));
 
 

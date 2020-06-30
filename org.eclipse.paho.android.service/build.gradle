@@ -36,9 +36,10 @@ configurations {
 }
 
 dependencies {
-    compile "org.eclipse.paho:org.eclipse.paho.client.mqttv3:${rootProject.ext.clientVersion}"
+    //compile "org.eclipse.paho:org.eclipse.paho.client.mqttv3:${rootProject.ext.clientVersion}"
     compile "com.android.support:support-v4:${rootProject.ext.supportLibVersion}"
     compile fileTree(include: ['*.jar'], dir: 'libs')
+    compile fileTree(include: ['*.jar'], dir: 'lib')
 }
 
 android.libraryVariants.all { variant ->
@@ -130,5 +131,6 @@ assemble.doLast {
 }
 
 clean.doFirst {
+    println "deletingggggggggggggggg"
     delete 'libs'
 }

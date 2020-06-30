@@ -12,10 +12,11 @@
  */
 package org.eclipse.paho.android.service;
 
-import org.eclipse.paho.client.mqttv3.IMqttActionListener;
-import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
-import org.eclipse.paho.client.mqttv3.MqttException;
-import org.eclipse.paho.client.mqttv3.MqttMessage;
+import org.eclipse.paho.mqttv5.client.*;
+import org.eclipse.paho.mqttv5.client.internal.*;
+import org.eclipse.paho.mqttv5.client.persist.*;
+import org.eclipse.paho.mqttv5.common.*;
+import org.eclipse.paho.mqttv5.common.packet.*;
 
 /**
  * <p>
@@ -29,7 +30,7 @@ class MqttDeliveryTokenAndroid extends MqttTokenAndroid
 	private MqttMessage message;
 
 	MqttDeliveryTokenAndroid(MqttAndroidClient client,
-			Object userContext, IMqttActionListener listener, MqttMessage message) {
+			Object userContext, MqttActionListener listener, MqttMessage message) {
 		super(client, userContext, listener);
 		this.message = message;
 	}
@@ -42,7 +43,7 @@ class MqttDeliveryTokenAndroid extends MqttTokenAndroid
 		return message;
 	}
 
-	void setMessage(MqttMessage message) {
+	protected void setMessage(MqttMessage message) {
 		this.message = message;
 	}
 

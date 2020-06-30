@@ -7,7 +7,7 @@ import java.util.concurrent.TimeUnit;
 import org.eclipse.paho.client.mqttv3.IMqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.IMqttToken;
-import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
+import org.eclipse.paho.client.mqttv3.MqttConnectionOptions;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 import android.test.AndroidTestCase;
@@ -136,10 +136,10 @@ public class AndroidServiceTest extends AndroidTestCase {
                     null);
             mqttClient.setCallback(mqttV3Receiver);
 
-            MqttConnectOptions mqttConnectOptions = new MqttConnectOptions();
-            mqttConnectOptions.setCleanSession(false);
+            MqttConnectionOptions mqttConnectionOptions = new MqttConnectionOptions();
+            mqttConnectionOptions.setCleanSession(false);
 
-            connectToken = mqttClient.connect(mqttConnectOptions, null, null);
+            connectToken = mqttClient.connect(MqttConnectionOptions, null, null);
             connectToken.waitForCompletion(waitForCompletionTime);
 
             String[] topicNames = new String[]{methodName + "/Topic"};
@@ -560,7 +560,7 @@ public class AndroidServiceTest extends AndroidTestCase {
                     null);
             mqttClient.setCallback(mqttV3Receiver);
 
-            MqttConnectOptions mqttConnectOptions = new MqttConnectOptions();
+            MqttConnectionOptions mqttConnectionOptions = new MqttConnectionOptions();
             // Clean start: true - The broker cleans up all client state,
             // including subscriptions, when the client is disconnected.
             // Clean start: false - The broker remembers all client state,
@@ -569,8 +569,8 @@ public class AndroidServiceTest extends AndroidTestCase {
             // client is disconnected.
             // For Mqtt V3 cleanSession=false, implies new subscriptions are
             // durable.
-            mqttConnectOptions.setCleanSession(false);
-            connectToken = mqttClient.connect(mqttConnectOptions, null, null);
+            MqttConnectionOptions.setCleanSession(false);
+            connectToken = mqttClient.connect(MqttConnectionOptions, null, null);
             connectToken.waitForCompletion(waitForCompletionTime);
 
             String[] topicNames = new String[]{methodName + "/Topic"};
@@ -602,9 +602,9 @@ public class AndroidServiceTest extends AndroidTestCase {
                     null);
             mqttClient.setCallback(mqttV3Receiver);
 
-            mqttConnectOptions = new MqttConnectOptions();
-            mqttConnectOptions.setCleanSession(true);
-            connectToken = mqttClient.connect(mqttConnectOptions, null, null);
+            MqttConnectionOptions = new MqttConnectionOptions();
+            MqttConnectionOptions.setCleanSession(true);
+            connectToken = mqttClient.connect(MqttConnectionOptions, null, null);
             connectToken.waitForCompletion(waitForCompletionTime);
 
             // Receive the publication so that we can be sure the first client
@@ -635,9 +635,9 @@ public class AndroidServiceTest extends AndroidTestCase {
                     null);
             mqttClient.setCallback(mqttV3Receiver);
 
-            mqttConnectOptions = new MqttConnectOptions();
-            mqttConnectOptions.setCleanSession(true);
-            connectToken = mqttClient.connect(mqttConnectOptions, null, null);
+            MqttConnectionOptions = new MqttConnectionOptions();
+            MqttConnectionOptions.setCleanSession(true);
+            connectToken = mqttClient.connect(MqttConnectionOptions, null, null);
             connectToken.waitForCompletion(waitForCompletionTime);
 
             MqttV3Receiver.ReceivedMessage receivedMessage = mqttV3Receiver
@@ -795,7 +795,7 @@ public class AndroidServiceTest extends AndroidTestCase {
 
                 String[] urls = new String[]{"tcp://junk", mqttServerURI};
 
-                MqttConnectOptions options = new MqttConnectOptions();
+                MqttConnectionOptions options = new MqttConnectionOptions();
                 options.setServerURIs(urls);
 
                 Log.i(methodName, "HA connect");
@@ -919,7 +919,7 @@ public class AndroidServiceTest extends AndroidTestCase {
             mqttClient = new MqttAndroidClient(mContext, mqttSSLServerURI,
                     "testSSLConnect");
 
-            MqttConnectOptions options = new MqttConnectOptions();
+            MqttConnectionOptions options = new MqttConnectionOptions();
             options.setSocketFactory(mqttClient.getSSLSocketFactory(this.getContext().getAssets().open("test.bks"), keyStorePwd));
 
             IMqttToken connectToken = null;
@@ -968,7 +968,7 @@ public class AndroidServiceTest extends AndroidTestCase {
             mqttClient = new MqttAndroidClient(mContext, mqttSSLServerURI,
                     "testSSLPubSub");
 
-            MqttConnectOptions options = new MqttConnectOptions();
+            MqttConnectionOptions options = new MqttConnectionOptions();
             options.setSocketFactory(mqttClient.getSSLSocketFactory(this.getContext().getAssets().open("test.bks"),
                     keyStorePwd));
 

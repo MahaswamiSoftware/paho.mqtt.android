@@ -12,12 +12,11 @@
  */
 package org.eclipse.paho.android.service;
 
-import org.eclipse.paho.client.mqttv3.IMqttActionListener;
-import org.eclipse.paho.client.mqttv3.IMqttAsyncClient;
-import org.eclipse.paho.client.mqttv3.IMqttToken;
-import org.eclipse.paho.client.mqttv3.MqttException;
-import org.eclipse.paho.client.mqttv3.MqttSecurityException;
-import org.eclipse.paho.client.mqttv3.internal.wire.MqttWireMessage;
+import org.eclipse.paho.mqttv5.client.*;
+import org.eclipse.paho.mqttv5.client.internal.*;
+import org.eclipse.paho.mqttv5.client.persist.*;
+import org.eclipse.paho.mqttv5.common.*;
+import org.eclipse.paho.mqttv5.common.packet.*;
 
 /**
  * <p>
@@ -27,7 +26,7 @@ import org.eclipse.paho.client.mqttv3.internal.wire.MqttWireMessage;
 
 class MqttTokenAndroid implements IMqttToken {
 
-  private IMqttActionListener listener;
+  private MqttActionListener listener;
 
   private volatile boolean isComplete;
 
@@ -53,7 +52,7 @@ class MqttTokenAndroid implements IMqttToken {
    * @param listener optional listener that will be notified when the action completes. Use null if not required.
    */
   MqttTokenAndroid(MqttAndroidClient client,
-      Object userContext, IMqttActionListener listener) {
+      Object userContext, MqttActionListener listener) {
     this(client, userContext, listener, null);
   }
 
@@ -66,7 +65,7 @@ class MqttTokenAndroid implements IMqttToken {
    * @param topics topics to subscribe to, which can include wildcards.
    */
   MqttTokenAndroid(MqttAndroidClient client,
-      Object userContext, IMqttActionListener listener, String[] topics) {
+      Object userContext, MqttActionListener listener, String[] topics) {
     this.client = client;
     this.userContext = userContext;
     this.listener = listener;
@@ -105,7 +104,7 @@ class MqttTokenAndroid implements IMqttToken {
         // do nothing
       }
       if (!isComplete) {
-        throw new MqttException(MqttException.REASON_CODE_CLIENT_TIMEOUT);
+        throw new MqttException(MqttException.REASON_CODE_CLIENT_EXCEPTION);
       }
       if (pendingException != null) {
         throw pendingException;
@@ -177,15 +176,16 @@ class MqttTokenAndroid implements IMqttToken {
    * @see org.eclipse.paho.client.mqttv3.IMqttToken#getClient()
    */
   @Override
-  public IMqttAsyncClient getClient() {
-    return client;
+  public MqttClientInterface getClient() {
+//    return client;
+    return null;
   }
 
   /**
    * @see org.eclipse.paho.client.mqttv3.IMqttToken#setActionCallback(IMqttActionListener)
    */
   @Override
-  public void setActionCallback(IMqttActionListener listener) {
+  public void setActionCallback(MqttActionListener listener) {
     this.listener = listener;
   }
 
@@ -193,7 +193,7 @@ class MqttTokenAndroid implements IMqttToken {
    * @see org.eclipse.paho.client.mqttv3.IMqttToken#getActionCallback()
    */
   @Override
-  public IMqttActionListener getActionCallback() {
+  public MqttActionListener getActionCallback() {
     return listener;
   }
 
@@ -248,5 +248,10 @@ class MqttTokenAndroid implements IMqttToken {
   public int[] getGrantedQos() {
     return delegate.getGrantedQos();
   }
-  
+
+  @Override
+  public int[] getReasonCodes() {
+    return new int[0];
+  }
+
 }

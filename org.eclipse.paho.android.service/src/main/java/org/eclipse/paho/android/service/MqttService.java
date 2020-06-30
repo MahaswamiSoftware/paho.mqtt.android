@@ -18,15 +18,11 @@ package org.eclipse.paho.android.service;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.eclipse.paho.client.mqttv3.DisconnectedBufferOptions;
-import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
-import org.eclipse.paho.client.mqttv3.IMqttMessageListener;
-import org.eclipse.paho.client.mqttv3.MqttClientPersistence;
-import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
-import org.eclipse.paho.client.mqttv3.MqttException;
-import org.eclipse.paho.client.mqttv3.MqttMessage;
-import org.eclipse.paho.client.mqttv3.MqttPersistenceException;
-import org.eclipse.paho.client.mqttv3.MqttSecurityException;
+import org.eclipse.paho.mqttv5.client.*;
+import org.eclipse.paho.mqttv5.client.internal.*;
+import org.eclipse.paho.mqttv5.client.persist.*;
+import org.eclipse.paho.mqttv5.common.*;
+import org.eclipse.paho.mqttv5.common.packet.*;
 
 import android.annotation.SuppressLint;
 import android.app.Service;
@@ -322,7 +318,7 @@ public class MqttService extends Service implements MqttTraceHandler {
    * @throws MqttSecurityException thrown if there is a security exception
    * @throws MqttException thrown for all other MqttExceptions
    */
-  public void connect(String clientHandle, MqttConnectOptions connectOptions,
+  public void connect(String clientHandle, MqttConnectionOptions connectOptions,
       String invocationContext, String activityToken)
       throws MqttSecurityException, MqttException {
 	  	MqttConnection client = getConnection(clientHandle);
