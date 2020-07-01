@@ -25,6 +25,12 @@ android {
     lintOptions {
         abortOnError false
     }
+    packagingOptions {
+        exclude 'bundle.properties'
+        exclude 'org/eclipse/paho/mqttv5/common/nls/messages_fr.properties'
+        exclude 'org/eclipse/paho/mqttv5/client/internal/nls/logcat.properties'
+        exclude 'org/eclipse/paho/mqttv5/common/nls/*.properties'
+    }
 }
 
 repositories {
